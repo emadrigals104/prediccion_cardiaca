@@ -149,8 +149,6 @@ if uploaded_file is not None:
 
         fig.update_layout(
             title=f"Gráfico de Barras - Predicción",
-            xaxis_title="Género",
-            yaxis_title="valores_categoricas",
             font=dict(size=12),
             width=500,
             height=500
