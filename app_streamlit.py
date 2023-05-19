@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import pickle
 from io import BytesIO
+import plotly.graph_objects as go
+import plotly.express as px
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import LabelEncoder
 
@@ -19,8 +21,8 @@ def to_excel(df):
 # Configuramos la página de Streamlit
 st.set_page_config(page_title="App de predicción",
                    page_icon='https://cdn-icons-png.flaticon.com/512/5935/5935638.png',  
-                   layout="centered", 
-                   initial_sidebar_state="auto")
+                   layout='wide', 
+                   initial_sidebar_state='expanded')
 
 
 
@@ -120,6 +122,86 @@ if uploaded_file is not None:
     if mostrar_prediccion:
         st.write(df_unido)
     st.divider()
+    st.markdown("### Gráficos de la predicción")
+    col_gra1, col_gra2 = st.columns((5,5))
+    valores_categoricas = df_unido["chd"].value_counts()
+    #Colores de los gráficos
+    colorscale = px.colors.sequential.YlOrBr
+    num_categorias = len(valores_categoricas.index)
+    step_size = int(len(colorscale) / num_categorias)
+    colores = colorscale[::step_size]
+            
+            
+    with col_gra1:
+                
+        #gráfico de barras
+        fig = go.Figure()
+
+        fig.add_trace(go.Bar(
+            x=valores_categoricas.index,
+            y=valores_categoricas,
+            text=valores_categoricas,
+            textposition='auto',
+            hovertemplate='%{x}: <br>valores_categoricas: %{y}',
+            marker=dict(color=colores)
+
+        ))
+
+        fig.update_layout(
+            title=f"Gráfico de Barras - Predicción",
+            xaxis_title="Género",
+            yaxis_title="valores_categoricas",
+            font=dict(size=12),
+            width=500,
+            height=500
+        )
+
+        st.plotly_chart(fig)
+
+            
+    with col_gra2:
+        #gráfico de pastel
+        fig = go.Figure()
+                
+        fig.add_trace(go.Pie(
+            labels=valores_categoricas.index,
+            values=valores_categoricas.values,
+            textinfo='label+percent',
+            insidetextorientation='radial',
+            hovertemplate='%{label}: <br>valores_categoricas: %{value} <br>Porcentaje: %{percent}',
+            showlegend=True,
+            marker=dict(colors=colores)
+                    
+        ))
+
+        fig.update_layout(
+            title=f"Gráfico Circular - Predicción",
+            font=dict(size=15),
+            width=500,
+            height=500
+        )
+
+        st.plotly_chart(fig)
+            
+
+            
+
+    st.divider()
+            
+    # Descargar el archivo con las predicciones en formato Excel o CSV
+    st.markdown("### Descargar el Archivo Predecido en Diferentes Formatos")        
+    st.download_button(
+        label=":file_folder: Descargar El Archivo Excel",
+        data=to_excel(df_unido),
+        file_name='Reporte.xlsx',
+        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    st.download_button(
+        label=":file_folder: Descargar El Archivo CSV",
+        data=csv_data,
+        file_name="reporte.csv",
+        mime="text/csv"
+        )
 
 else:
     st.write(input_df)
